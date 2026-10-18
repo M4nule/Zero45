@@ -1,0 +1,267 @@
+# Physical and economic assumptions for "Zero45" (Germany, 2030–2045).
+# Every number here is documented with its source. Game-balance parameters live in game_default.yaml.
+
+stages: [2030, 2035, 2040, 2045]          # each stage represents the 5 years up to this year
+# Three weather levels (TYNDP climate years, see weather_check.csv); probabilities are game settings.
+normal_weather_year: 2008                 # mildest of the three
+harder_weather_year: 1995                 # "schwieriges Jahr": colder, less wind
+extreme_weather_year: 2009                # "extremer Winter": cold spell, highest residual load (~1 in 10-20 years)
+climate_years: [1995, 2008, 2009]
+
+# Annual NET electricity consumption excluding electrolysis (electrolysers are a player decision), middle path,
+# one consistent basis (NEP 2037/2045 (2025), 2nd draft, "Nettostromverbrauch ohne Elektrolyse"):
+#   NEP range 2037: 776-918 TWh (middle ~850), 2045: 831-1015 TWh (middle ~925); 2030 from today's ~460-470 TWh net
+#   consumption plus heat pumps / EVs / industry (Monitoringbericht 2025 path, net basis) -> ~600 TWh.
+#   2035 and 2040 interpolated along the NEP middle (2037 ~850). Applies to the normal weather year; other
+#   climate years keep their TYNDP weather ratio (cold years slightly higher).
+#   2030 lowered to 560 TWh net: Monitoringbericht Energiewende 2025 expects the lower end of 600-700 TWh GROSS
+#   (gross = net + ~40-50 TWh losses and own use).
+demand_twh: {2030: 560, 2035: 760, 2040: 875, 2045: 925}
+# Grid losses and own consumption of power plants (part of GROSS consumption) are served by the model as a markup on
+# the hourly net load. Grid losses ~5 % of net demand (today ~25-27 TWh); own consumption of power plants ~2 % in 2030,
+# shrinking with the coal exit to <1 % in 2045. Pumped-storage and battery losses are modelled explicitly, electrolysis
+# is a player decision. Check 2030: 560 x 1.07 = 600 TWh + ~10 TWh pumping + 10-20 TWh electrolysis = ~620-630 TWh gross
+# (Monitoringbericht 2025: lower end of 600-700 TWh). The CO2-free share is measured against this load (as the
+# official statistic uses gross consumption).
+demand_loss_factor: {2030: 1.07, 2035: 1.065, 2040: 1.06, 2045: 1.06}
+
+# Economic basis
+currency: EUR 2025
+discount_rate: 0.05
+inflation_2021_to_2025: 1.18              # Destatis VPI (2020=100): 2021 103.1 -> 2025 121.9 = 1.182
+voll_eur_per_mwh: 10000                   # ASSUMPTION: value of lost load (unserved energy)
+
+# Fuel (EUR/MWh_th) and CO2 (EUR/t) prices, EUR 2025. Source: TYNDP 2024 Commodity prices
+# ("Matrix 2024", IEA WEO 2022 APS), converted from EUR/GJ (x3.6) and EUR 2021 (x1.18). 2035/2045 interpolated
+# between 2030/2040/2050. Raw EUR2021/GJ values: gas 6.29/5.65/5.02, hard coal 1.78/1.65/1.52, lignite 1.8,
+# light oil 11.74/11.38/11.01; CO2 113.4/147/168 EUR2021/t.
+# Note: CO2 price follows the TYNDP/IEA APS scenario (~134 EUR/t in 2030), clearly above the EU ETS price of autumn 2026 (~80-90 EUR/t).
+prices:
+  natural_gas: {2030: 26.7, 2035: 25.4, 2040: 24.0, 2045: 22.7}
+  lignite:     {2030: 7.6, 2035: 7.6, 2040: 7.6, 2045: 7.6}
+  hard_coal:   {2030: 7.5, 2035: 7.3, 2040: 7.0, 2045: 6.7}
+  light_oil:   {2030: 49.9, 2035: 49.1, 2040: 48.3, 2045: 47.6}
+  co2:         {2030: 134, 2035: 154, 2040: 173, 2045: 186}
+
+# Emission factors in t CO2 per MWh_th. Source: TYNDP 2024 CO2 emission factors v2
+# (kg/GJ: gas 57, hard coal 94, lignite 101, light oil 78)
+emission_factors: {natural_gas: 0.205, hard_coal: 0.338, lignite: 0.364, light_oil: 0.281}
+
+# Technologies. invest in EUR/kW (or per package), FOM in % of invest per year, lifetime in years,
+# VOM in EUR/MWh_el. Source: PyPSA technology-data (outputs/costs_<year>.csv, EUR 2025), largely based on
+# Danish Energy Agency Technology Data. Values per stage year where they change.
+technologies:
+  onwind:
+    name: Onshore-Wind
+    invest: {2030: 1383, 2035: 1345, 2040: 1306, 2045: 1296}
+    fom: 1.22
+    vom: 1.8
+    lifetime: 30
+  offwind:
+    name: Offshore-Wind
+    # turbine + 30 % grid connection (offwind-ac/dc station and cable, technology-data)
+    invest: {2030: 2749, 2035: 2652, 2040: 2554, 2045: 2522}
+    fom: 2.32
+    vom: 0.03
+    lifetime: 30
+  solar_utility:
+    name: Freiflächen-PV
+    invest: {2030: 482, 2035: 443, 2040: 403, 2045: 386}
+    fom: 2.48
+    vom: 0.0
+    lifetime: 40
+  solar_rooftop:
+    name: Dach-PV
+    invest: {2030: 884, 2035: 806, 2040: 729, 2045: 694}
+    fom: 1.42
+    vom: 0.0
+    lifetime: 40
+  battery:
+    name: Batteriespeicher
+    # 1 kW inverter + 4 kWh storage. inverter 214->107 EUR/kW, storage 190->113 EUR/kWh
+    invest: {2030: 973, 2035: 805, 2040: 636, 2045: 559}
+    fom: 0.5
+    vom: 0.0
+    lifetime: 20
+    hours: 4                          # ASSUMPTION (game simplification): typical new large-scale projects are 1-2 h
+                                      # today, longer durations become economic with more PV; 4 h is the common
+                                      # modelling convention (NEP, technology-data cost split per kW and kWh)
+    efficiency_one_way: 0.96          # technology-data battery inverter -> ~92 % round trip
+  h2_package:
+    name: "Wasserstoff: Elektrolyse"
+    # Electrolyser (key kept as h2_package for saved settings). technology-data "electrolysis":
+    # 1886/1697/1509/1383 EUR/kW_el (FOM 4 %, 25 years). Efficiency electricity -> H2 (LHV).
+    invest: {2030: 1886, 2035: 1697, 2040: 1509, 2045: 1383}
+    fom: 4.0
+    vom: 0.0
+    lifetime: 25
+    electrolyser_efficiency: {2030: 0.62, 2035: 0.64, 2040: 0.65, 2045: 0.68}
+  h2_storage:
+    name: "Wasserstoff-Speicher (Salzkaverne)"
+    # technology-data "hydrogen storage underground": 2.67/2.34/2.01/1.81 EUR/kWh_H2 (FOM 0, 100 years).
+    # Capacity unit: MWh_H2 (not MW); "invest" is EUR per kWh_H2. Charging/discharging power is not limited.
+    invest: {2030: 2.67, 2035: 2.34, 2040: 2.01, 2045: 1.81}
+    fom: 0.0
+    vom: 0.0
+    lifetime: 100
+  h2_import:
+    name: "Wasserstoff-Import (Kernnetz)"
+    # Influence card "Wasserstoff-Netz & Import": pipeline hydrogen for the converted gas turbines, from the stage
+    # after the card (earliest 2035). ASSUMPTION: import price of (mostly green) hydrogen at the German border,
+    # EUR2025 per MWh_H2 (LHV, 33.3 kWh/kg): ~4.5 EUR/kg in 2030 falling to ~3.3 EUR/kg in 2045. Within the ranges of
+    # - EWI (2025), "Global production and delivery costs of green hydrogen": pipeline imports to Germany ~150 EUR/MWh
+    #   in 2030, medium term 150-170 EUR/MWh (ship imports 250-300 EUR/MWh);
+    # - Fraunhofer ISI/ISE/IEG, HYPAT "Global Hydrogen Atlas" (Dec. 2024): import costs to Germany 3.5-6.5 EUR/kg (2030),
+    #   2-4.5 EUR/kg (2050);
+    # - Schmitz et al. (2024), Int. J. Hydrogen Energy 63, 566-579: import price scenarios 69-149 (2030), 72-110 (2045)
+    #   EUR2018/MWh.
+    # Capacity available to the power sector (GW_H2): ASSUMPTION; hydrogen core network (Kernnetz) completed by 2032.
+    price: {2030: 150, 2035: 140, 2040: 125, 2045: 110}
+    capacity_mw: {2030: 0, 2035: 15000, 2040: 30000, 2045: 45000}
+  gas_new:
+    name: Neue Gasturbinen (H2-ready)
+    # open-cycle gas turbine (technology-data "OCGT": 581/574/566/558 EUR/kW, FOM 1.78 %, VOM 6.0, 41-42.5 %)
+    # +10 % for H2-readiness
+    invest: {2030: 640, 2035: 631, 2040: 622, 2045: 614}
+    fom: 1.79
+    vom: 6.0
+    lifetime: 25
+    efficiency: 0.41
+    conversion_invest: 120                                      # ASSUMPTION: EUR/kW retrofit to 100 % H2
+  biomass_flex:
+    name: Biomasse-Flexibilisierung
+    # Additional engine capacity at existing biogas plants; the available biomass ENERGY stays the same (41 TWh),
+    # flexibilisation only shifts it to scarce hours. Priced with the full biogas plant (technology-data "biogas"),
+    # probably conservative (real flex retrofits are cheaper; not verified).
+    invest: {2030: 1201, 2035: 1180, 2040: 1160, 2045: 1125}
+    fom: 7.78
+    vom: 0.0
+    lifetime: 20
+    # Additional capacity allowed per MW of kept biomass base capacity. 2 -> total up to 3x the base capacity.
+    # The existing fleet (8.9 GW at ~4,600 full-load hours) is already ~1.9x its average output; 3x base is
+    # ~5.7x average output, the upper end of real overbuilding of flexible biogas plants (typ. 2-5x). ASSUMPTION.
+    max_per_base: 2.0
+
+# Existing fleet (start of the game). Source: BNetzA Kraftwerksliste, data as of 26.06.2026 (in operation, MW).
+existing:
+  onwind: 69897                       # existing turbines: own generator with derated profile (see wind_old_derating)
+  offwind: 10601
+  solar_total: 110634
+  solar_rooftop_share: 0.66           # start split only: ~34 % ground-mounted (Solarserver, Feb 2026, MaStR-based)
+  biomass: 8868
+  gas: 30143
+  lignite: 14275
+  hard_coal: 7602
+  ror: 3934                           # PEMMDB 2030 run-of-river (TYNDP), Kraftwerksliste "Wasser" 5314 incl. storage hydro
+
+# The PECD profiles represent modern turbines. The existing fleet (many older, smaller turbines) produces less:
+# ~115-125 TWh onshore and ~30-35 TWh offshore in a normal year. APPROXIMATION: the existing fleet uses the
+# PECD 2030 profile scaled to a capacity factor of ~20 % (onshore) and ~34 % (offshore) in the normal year 2008.
+# New turbines use the PECD profile of the stage (onshore ~26-29 %, offshore ~52-54 %).
+wind_old_derating: {onwind: 0.775, offwind: 0.648}
+
+# PV: the PECD has one profile (~885 full-load hours in 2008). Ground-mounted plants (fixed south, 20-25 deg tilt)
+# receive ~15 % more in-plane irradiation and reach a somewhat higher performance ratio than rooftop plants
+# (Fraunhofer ISE, "Aktuelle Fakten zur Photovoltaik": rooftop ~922 h in 2021, new ground-mounted ~980 kWh/kWp).
+# ASSUMPTION: ground-mounted profile x1.10 (~975 h), rooftop as PECD. The daily shape is not changed.
+solar_utility_yield_factor: 1.10
+
+# Offshore: the PECD profile (~52-54 %) has no wake losses. Fraunhofer IWES (Feb 2025): ~5,200 h gross; with wakes at
+# 50-70 GW in the German Bight 3,250-4,500 h depending on density. ASSUMPTION: new offshore x0.85 (~45 %).
+offwind_new_derating: 0.85
+
+# Ageing of the existing fleet (share of the start capacity still in operation). ASSUMPTION derived from historical
+# additions (Deutsche WindGuard / BNetzA, approx.): onshore lifetime 25 years (built <=2005 gone by 2030, <=2010 by
+# 2035, ...; ~5 GW of the oldest are already gone), PV 30 years, offshore 30 years, large batteries ~15 years.
+fleet_remaining:
+  onwind_old:   {2030: 0.82, 2035: 0.68, 2040: 0.49, 2045: 0.30}
+  offwind_old:  {2030: 1.00, 2035: 1.00, 2040: 0.99, 2045: 0.69}
+  solar:        {2030: 1.00, 2035: 0.98, 2040: 0.84, 2045: 0.65}
+  battery_old:  {2030: 1.00, 2035: 0.90, 2040: 0.40, 2045: 0.00}
+
+# Imports/exports (one connection point to a synthetic European market). Hourly "fossil need" F(t) of the 12
+# neighbouring market nodes from TYNDP NT demand + PECD weather + EU27 NT+ generation mix (neighbours_<year>.csv.gz,
+# see build_inputs.load_neighbours). APPROXIMATION / game assumptions:
+#   - import availability: spare fossil capacity of the neighbours = 1.05 x max(F) - F(t), at most the capacity
+#   - import price and CO2: surplus (F<=0) 10 EUR/MWh and CO2-free; then rising to a gas plant like the German fleet
+#     average (50 %), above 80 % of max(F) to a gas turbine (40 %) and up to 300 EUR/MWh at the neighbours' peak;
+#     plus a transmission/trading fee on imports and exports (calibrated so that the start fleet in 2030 shows gross
+#     imports in the range of today's ~60-70 TWh)
+#   - exports: neighbours absorb up to F(t) (their fossil generation) at the hourly price minus export_discount,
+#     plus absorb_mw at any time (hydro saving, electrolysis, power-to-heat abroad) at a low price
+#   - neighbour storage (hydro reservoirs in NO/SE/Alps that save water while importing, pumped hydro): takes German
+#     surplus at any time (paid at the export price, 0 in surplus hours) and returns it later at the hourly import
+#     price. It only returns what Germany put in (cyclic, round-trip losses). Shares the interconnector capacity.
+#     Size/efficiency, absorb_mw and import_fee: CALIBRATED so that the start fleet in 2030 imports
+#     ~75 TWh (2024: 67 TWh at a lower CO2 price) and the TYNDP NT+ 2030 German portfolio (climate year 2009, TYNDP
+#     interconnectors) exports ~49 TWh (TYNDP: 54 TWh, hourly net balance); 2040: 90 TWh (TYNDP 67 TWh), imports are
+#     higher than in the TYNDP because its 60 TWh of explicit demand response are not modelled. See section 8 of the background document in docs/
+#   - imports are not counted as renewable; exported clean power counts (official EEG statistic); import CO2 is
+#     emitted abroad (shown for information only)
+trade:
+  # simultaneously usable cross-border capacity. TYNDP 2024 NT+ (DE00, CY2009): max. net import 37.5 GW (2030) /
+  # 39.2 GW (2040), 95th percentile 26-27 GW; sum of NTCs 40 / 43 GW. ASSUMPTION: about the 95th percentile, rising.
+  capacity_mw: {2030: 25000, 2035: 28000, 2040: 32000, 2045: 35000}
+  grid_eu_bonus_mw: 10000                                              # influence "Netzausbau Europa"
+  neighbour_storage: {energy_mwh: 500000, efficiency_one_way: 0.85}    # CALIBRATED (see above)
+  absorb_mw: {2030: 8000, 2035: 8000, 2040: 8000, 2045: 8000}          # CALIBRATED: always absorbable by neighbours
+  absorb_price: 2                                                      # EUR/MWh paid for it in their surplus hours
+  surplus_price: 10
+  scarcity_price: 300
+  ccgt_efficiency: 0.50
+  import_fee: 12
+  ocgt_efficiency: 0.40
+  margin: 1.05
+  export_discount: 5
+
+# Flexible consumers (influence "Flexible Verbraucher", from the stage after it is played). Benchmarks: NEP 2037/2045
+# DSM 9-18 GW plus 35-55 % market-oriented EVs/heat pumps; TYNDP 2024 NT+ explicit demand response 24-28 GW;
+# BNetzA monitoring 2025: ~30 GW of flexibility used in the peak hour 2035. ASSUMPTION (game values, below these):
+#   shift: EVs/heat pumps move consumption by a few hours = lossless storage (no fuel, no CO2)
+#   shed: industry/commerce reduce load when prices are high, limited energy per year
+flexibility:
+  shift_mw: {2030: 5000, 2035: 10000, 2040: 15000, 2045: 20000}
+  shift_hours: 4
+  shed_mw: {2030: 4000, 2035: 6000, 2040: 8000, 2045: 10000}
+  shed_price: 300            # EUR/MWh
+  shed_max_hours: 200        # full-load hours per year
+
+# Fixed blocks: real German capacity that players cannot build or retire (constant over all stages unless noted).
+# Large-scale batteries in operation: 3.7 GW (Kraftwerksliste). Energy ~1 h is an APPROXIMATION (MaStR large-scale
+# storage is ~1-1.5 h on average). Home batteries (~12 GW / ~20 GWh) are NOT modelled: they mostly optimise
+# self-consumption of the household and are not dispatched for the system.
+fixed_blocks:
+  battery_old: {mw: 3743, hours: 1, fom_eur_kw: 5}            # FOM: ASSUMPTION
+  # Pumped hydro in operation incl. plants abroad connected to the German grid (Kraftwerksliste: 9,900 MW).
+  # ASSUMPTION: 6 h at full power (~59 GWh; literature ~40 GWh in DE plus AT/LU plants), 77 % round trip.
+  phs: {mw: 9900, hours: 6, efficiency_one_way: 0.88, fom_eur_kw: 22}
+  # Other conventional plants in operation (Kraftwerksliste): mineral oil 2,208, other non-renewable 2,416,
+  # mine gas 136 MW. APPROXIMATION: one block priced like light oil, 35 % efficiency; retired by 2040.
+  other_fossil: {mw: {2030: 4760, 2035: 4760, 2040: 0, 2045: 0}, efficiency: 0.35, vom: 5.0, fom_eur_kw: 25}
+  # Waste incineration (Kraftwerksliste: 1,901 MW): runs as baseload (waste must be burned), ~10.8 TWh/yr (real
+  # ~11 TWh, of which 5.4 TWh biogenic, AGEE-Stat 2025). Counted 50 % renewable / 50 % fossil.
+  # CO2: ASSUMPTION 0.5 t per MWh_el for the whole output (fossil carbon only, CHP allocation).
+  waste: {mw: 1901, availability: 0.65, renewable_share: 0.5, co2_t_per_mwh_el: 0.5, fom_eur_kw: 40}
+  # Grid and capacity reserve (outside the market, Kraftwerksliste): gas 1,457 + 1,384, oil 805 = 3,646 MW in all
+  # stages; hard coal grid reserve 5,248 + KVBG reserve 2,201 = 7,449 MW until 2035 only.
+  # Dispatched only in scarcity at an ASSUMED activation cost of 500 EUR/MWh; counted as fossil.
+  reserve:
+    mw: {2030: 11095, 2035: 11095, 2040: 3646, 2045: 3646}
+    coal_mw: {2030: 7449, 2035: 7449, 2040: 0, 2045: 0}
+    marginal_cost: 500
+    gas_efficiency: 0.40
+    coal_efficiency: 0.38
+    fom_eur_kw: 20                                            # ASSUMPTION
+
+# Existing plants: operating parameters
+existing_params:
+  gas: {efficiency: 0.50, vom: 4.0, fom_eur_kw: 25}        # fleet mix of CCGT/OCGT/CHP; FOM: ASSUMPTION
+  # Coal fleet as one block (no unit commitment). Single units ramp 1-4 %/min and can be switched off (Agora 2017,
+  # "Flexibility in thermal power plants"); the fleet keeps a must-run share for heat extraction (CHP) and lignite
+  # mining logistics, and start-ups take hours. ASSUMPTION: fleet minimum 15 % of kept capacity, ramp 40 %/h.
+  coal: {efficiency: 0.35, vom: 4.1, fom_eur_kw: 63, min_power: 0.15, ramp: 0.4, lignite_share: 0.65}
+  biomass: {fom_eur_kw: 93, marginal_cost: 60, energy_twh: 41.0}   # ~4,600 full-load hours (2025: 41 TWh); MC: ASSUMPTION
+  ror: {fom_eur_kw: 87, marginal_cost: 1}
+  # KVBG coal phase-out: max. coal capacity in market per stage (MW). 2030 ~ KVBG targets (lignite 9 GW,
+  # hard coal 8 GW); 2035 linear towards the 2038 end date; 0 from 2040.
+  coal_max_mw: {2030: 17000, 2035: 6000, 2040: 0, 2045: 0}

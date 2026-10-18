@@ -1,0 +1,4 @@
+climate_year,winter_mean_residual_GW,annual_deficit_TWh,max_2week_deficit_TWh,peak_residual_GW,min_7day_wind_cf,onwind_cf,offwind_cf,solar_cf,demand_peak_GW
+1995,26.416,232.387,25.512,140.765,0.073,0.292,0.519,0.1,166.321
+2008,22.897,223.542,22.358,138.191,0.102,0.286,0.539,0.101,154.042
+2009,37.433,248.549,22.793,175.605,0.065,0.267,0.51,0.101,191.508

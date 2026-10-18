@@ -1,0 +1,77 @@
+# Game parameters (preset "Standard"). The host can change these in the settings window.
+# These are game-balance levers; physical/economic data stay in assumptions.yaml.
+
+name: Standard
+stages: 4
+timer_minutes: [20, 15, 15, 15]          # build phase per stage (0 = no timer)
+simulations_per_stage: 3                 # Dispatch-Simulator runs per team and stage
+max_teams: 12
+
+# Money and tokens
+token_value_bn: 10.0                     # 1 build token = EUR 10 bn investment
+build_tokens: [18, 18, 17, 17]           # tokens per stage; front-loaded like the real need (EEG path ~204/157/120/74 bn EUR)
+max_borrow_tokens: 4                     # extra tokens per stage on credit
+borrow_premium: 0.20                     # extra cost of borrowed tokens (financing)
+influence_tokens_start: 2                # influence tokens at game start
+influence_token_price: 2                 # build tokens per additional influence token (original game: 1 budget
+                                         # token = 2 build tokens or 1 shaping token). The money counts as a
+                                         # programme cost (annuity over influence_lifetime years) in the cost score.
+influence_lifetime: 20
+
+# Learning (team-specific, on top of the DEA cost trend)
+learning_rate_per_token: 0.01            # mean cost reduction per token built
+learning_sd_factor: 0.5                  # sd = rate * factor
+innovation_multiplier: 2.0               # "Beschleunigte Innovation" doubles the learning rate
+
+# Social backlash (team-specific). New tech: probability per token; existing: per stage if kept.
+backlash_enabled: true
+backlash_rates_new: {none: 0.0, low: 0.02, moderate: 0.05, high: 0.10}
+backlash_rates_existing: {none: 0.0, low: 0.05, moderate: 0.10, high: 0.25}
+backlash_risk:
+  onwind: moderate
+  offwind: low
+  solar_utility: moderate
+  solar_rooftop: none
+  battery: none
+  h2_package: low
+  h2_storage: low
+  gas_new: moderate
+  biomass_flex: low
+  coal: high
+  gas: low
+  biomass: low
+  ror: none
+final_backlash_penalty: 2                # points per new technology with backlash in the last stage
+
+# Shared luck (same for all teams in a stage)
+weather_probabilities: {normal: 0.6, hard: 0.3, extreme: 0.1}   # normal 2008, difficult 1995, extreme winter 2009
+demand_shock_sd: 0.03
+disasters_enabled: true
+disaster_probability: [0.2, 0.3, 0.4, 0.5]
+disaster_type_weights: {storm: 0.40, dunkelflaute: 0.35, heat: 0.25}
+storm_hit_probability: 0.4               # per technology
+resilience_factor: 0.5                   # Resilience halves the severity of events
+seed: null                               # fixed number = reproducible session
+
+# Scoring (per stage, 0-5 points each)
+lole_thresholds: [3, 10, 25, 50, 100]                       # hours with supply gap for 5,4,3,2,1 points
+clean_thresholds:                                           # % CO2-free for 5,4,3,2,1 points
+  - [80, 75, 70, 65, 60]                                    # 2030: EEG target 80 % (legal)
+  - [88, 84, 80, 76, 72]                                    # after 2030 the legal target is climate neutrality
+  - [93, 90, 87, 84, 80]                                    # (tonnes, see co2_mt_thresholds); the share rewards
+  - [97, 95, 92, 89, 85]                                    # own clean power over imports (EEG: 100 % RE long-term)
+# Net-zero path (CO2 Mt/yr in Germany, territorial like the Klimaschutzgesetz) for 5,4,3,2,1 points. The CO2 category
+# gives the WORSE of share points and Mt points ("beides muss stimmen"). 5 points = target reached:
+# 2030 KSG Energiewirtschaft 108 Mt (power share ~70 Mt, estimate), 2035 G7 "predominantly decarbonised power"
+# (not quantified; calibrated so that it is reachable with the game's means),
+# 2040 coal exit 2038 + EU ETS cap ~0 around 2039/40, 2045 net-zero (waste incineration alone ~5 Mt).
+co2_mt_thresholds:                                          # lower tiers wide on purpose: half-way counts
+  - [70, 80, 90, 105, 120]
+  - [45, 55, 65, 80, 95]
+  - [25, 35, 50, 65, 80]
+  - [8, 20, 35, 50, 65]
+cost_thresholds:                                            # EUR/MWh system cost for 5,4,3,2,1 points
+  - [58, 63, 68, 73, 79]
+  - [64, 69, 74, 80, 86]
+  - [63, 68, 74, 80, 87]
+  - [65, 70, 76, 83, 91]

@@ -1,0 +1,10 @@
+# keep shell scripts runnable on Mac/Linux even when cloned on Windows
+*.sh    text eol=lf
+*.ps1   text eol=crlf
+*.py    text eol=lf
+*.md    text
+*.yaml  text eol=lf
+*.cff   text eol=lf
+*.lock  text eol=lf
+*.gz    binary
+*.pdf   binary

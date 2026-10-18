@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use Zero45, please cite it as below. Please also cite the original game “Path to Zero” and the data sources (see DATA_SOURCES.md)."
+type: software
+title: "Zero45 – Energy transition planning game (Germany 2030–2045)"
+abstract: >-
+  A planning game for groups: in four stages, teams build an electricity system for Germany that is reliable,
+  climate-neutral and affordable. Each stage is simulated hour by hour with an electricity market model
+  (PyPSA + HiGHS) using TYNDP 2024 and Bundesnetzagentur data. German and English user interface.
+  Based on the game idea of “Path to Zero” (Princeton ZERO Lab).
+authors:
+  - family-names: Lerschmacher
+    given-names: Manuel
+version: 0.1.0
+date-released: 2026-10-18
+license: GPL-2.0-or-later
+repository-code: https://github.com/M4nule/Energiewendespiel   
+keywords:
+  - energy transition
+  - Energiewende
+  - serious game
+  - planning game
+  - electricity system
+  - PyPSA
+  - education
+references:
+  - type: software
+    title: "Path to Zero – The Electricity Decarbonization Game"
+    authors:
+      - family-names: Jenkins
+        given-names: Jesse D.
+      - name: "Princeton ZERO Lab"
+    repository-code: "https://github.com/PrincetonZEROLab/Path-to-Zero"
+  - type: data
+    title: "TYNDP 2024 Scenarios (including Pan-European Climate Database PECD 3.1)"
+    authors:
+      - name: "ENTSO-E"
+      - name: "ENTSOG"
+    url: "https://2024.entsos-tyndp-scenarios.eu/download/"
+    license: CC-BY-4.0
+  - type: data
+    title: "Kraftwerksliste"
+    authors:
+      - name: "Bundesnetzagentur"
+    url: "https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/Versorgungssicherheit/Erzeugungskapazitaeten/start.html"
+  - type: software
+    title: "PyPSA: Python for Power System Analysis"
+    authors:
+      - name: "PyPSA developers"
+    url: "https://pypsa.org"

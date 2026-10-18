@@ -1,0 +1,15 @@
+# local environment and caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.nicegui/
+
+# game states (contain team names) and the session secret, host presets
+games/*
+!games/.keep
+presets/*
+!presets/.keep
+
+# raw input data (~1.4 GB, see DATA_SOURCES.md)
+raw/
